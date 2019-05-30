@@ -16,8 +16,11 @@ public class FloatingObject : MonoBehaviour
     public float Volume { get; private set; }
     public float Mass { get; private set; }
 
-    public WaterVolume fluid;
+    public float DisplacedFluidVolume { get; private set; }
 
+    Vector3 buoyantForce;
+
+    public WaterVolume fluid;
     private bool submerged;
 
     void Start()
@@ -25,7 +28,6 @@ public class FloatingObject : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         sphereCollider = GetComponent<SphereCollider>();
         MassVolumeDensity();
-        Debug.Log(string.Format("Mass: {0}, Volume: {1}, Density {2}", Mass, Volume, Density));
     }
 
     private void OnTriggerEnter(Collider other)
@@ -53,16 +55,23 @@ public class FloatingObject : MonoBehaviour
 
     void FixedUpdate()
     {
+        Mass = rb.mass;
+
         float depth =  Depth();
 
-        float displacedVolume = SubmergedVolume(depth);
+        DisplacedFluidVolume = SubmergedVolume(depth);
 
-        Vector3 buoyantForce = Physics.gravity * -1 * (displacedVolume * fluid.density);
-        rb.velocity += buoyantForce * Time.fixedDeltaTime;
-//        rb.AddForce(buoyantForce, ForceMode.Acceleration);
-        //rb.AddForceAtPosition()//geometric center of submerged area
-//        Debug.Log(string.Format("Volume: {0}, Submerged Volume: {1}", Volume, displacedVolume));
+        buoyantForce = Physics.gravity * -1 * (DisplacedFluidVolume * fluid.Density);
+      
 
+        rb.velocity += (Physics.gravity * Mass * Time.fixedDeltaTime) + (buoyantForce * Time.fixedDeltaTime);
+
+        //DebugValues();
+    }
+
+    private void DebugValues()
+    {
+        Debug.Log("Mass: " + Mass + ", Displaced Fluid Mass: " + fluid.Density * SubmergedVolume(Depth()));
     }
 
     private float Depth()
@@ -80,14 +89,14 @@ public class FloatingObject : MonoBehaviour
         Mass = rb.mass;
         if (shape == Shape.Sphere)
         {
-            Density = SphereDensity(sphereCollider.radius);
+            Volume = SphereVolume(sphereCollider.radius);
         }
-        Volume = Mass / Density;
+        Density = Mass / Volume; //not used but good to have
     }
 
-    private float SphereDensity(float radius)
+    private float SphereVolume(float radius)
     {
-        return (4 / 3) * Mathf.PI * Mathf.Pow(radius, 3);
+        return 4f / 3f * Mathf.PI * Mathf.Pow(radius, 3);
     }
 
     private float SubmergedVolume(float depth)
@@ -98,6 +107,6 @@ public class FloatingObject : MonoBehaviour
         float _3r2 = 3 * Mathf.Pow(sphereCollider.radius, 2);
         float _h2 = Mathf.Pow(depth, 2);
 
-        return Volume * ((Mathf.PI * depth * (_3r2 + _h2)) / 6);
+        return Volume * (Mathf.PI * depth * (_3r2 + _h2) / 6);
     }
 }
