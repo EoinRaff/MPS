@@ -19,17 +19,21 @@ public class UIController : MonoBehaviour
     public TextMeshProUGUI DisplacedFluid;
     public TextMeshProUGUI DuckDensity;
 
+    public TextMeshProUGUI Force;
+
     // Update is called once per frame
     void Update()
     {
-        FluidDensity.text = string.Format ("Fluid Density: {0:0.00}", FluidDensitySlider.value);
+        FluidDensity.text = string.Format ("Fluid Density: {0:0.##}g/cm^3", FluidDensitySlider.value);
         fluid.Density = FluidDensitySlider.value;
 
-        DuckWeight.text = string.Format("Duck Mass: {0:0.00}", DuckWeightSlider.value);
+        DuckWeight.text = string.Format("Duck Mass: {0:0.##}g", DuckWeightSlider.value);
         duckRB.mass = DuckWeightSlider.value;
 
-        DisplacedFluid.text = string.Format("Displaced Fluid Mass: {0:0.00}", duck.DisplacedFluidVolume * FluidDensitySlider.value);
+        DisplacedFluid.text = string.Format("Displaced Fluid Mass: {0:0.##}g", duck.DisplacedFluidVolume * FluidDensitySlider.value);
 
-        DuckDensity.text = string.Format("Duck Density: {0:0.00}", duck.Density);
+        DuckDensity.text = string.Format("Duck Density: {0:0.##}g/cm^3", duck.Density);
+
+        Force.text = string.Format("Buoyancy: {0:0.##}N", duck.Buoyancy);
     }
 }
